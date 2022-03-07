@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+option java_package = "ad.framework.pb";
+option java_outer_classname = "Example";
+option java_multiple_files = true;
+
+message BidRequest {
+    string reuqest_id = 1; //媒体端请求id 选填
+    string api_version = 2; //当前版本v1.0 必填
+    App app = 3; // app信息 必填
+    Site site = 4; //广告位信息 必填
+    Imp imp = 5; //竞价信息
+    Device device = 6; //设备信息 必填
+    User user = 7; //用户信息 选填
+}
+
+message App {
+    string bundle_id = 2; //必填
+    string app_name = 3; //选填
+}
+
+message Site {
+    string id = 1; //广告位id
+    int32 ad_type = 2; //类型 1：开屏  2：信息流
+    repeated CreativeType support_creative_type = 3; //支持的素材类型，默认全部支持
+    repeated InteractionType support_interaction_type = 4; //支持的交互类型，默认全部支持
+    bool support302 = 5; //是否支持302跳转，默认不支持
+    bool support_second_price = 6; //RTB模式下，是否支持二价回传，默认不支持
+}
+
+message Imp {
+    SettleType settle_type = 1; //交易模式
+    float bid_price = 2; //交易模式为RTB时，必传。单位为cpm分
+    message Pmp {
+        string deal_id = 1;
+        float deal_price = 2; //线下deal价格，单位为cpm分
+    }
+    Pmp pmp = 3; //交易模式为PD时，必传
+}
+
+message Device {
+    string ua = 1; //标准Ua 必填
+    string ipv4 = 2; //用户客户端ip，上传服务器IP将被反作弊过滤 必填
+    string ipv6 = 3; //ipv6
+    string idfa = 4; //ios idfa
+    string idfa_md5 = 5; //ios idfa md5加密值   ios时idfa/idfa_md5必填一个
+    string imei = 6; //android imei明文
+    string imei_md5 = 7; //android imei md5加密值 android时imei/imei_md5/oaid/oaid_md5必填一个
+    string oaid = 8; //android oaid明文
+    string oaid_md5 = 9; //android oaid md5加密值
+    string android_id = 10; //android id
+    string android_id_md5 = 11; //android id md5加密值 android id/android_id_md5选填一个。推荐
+    DeviceType device_type = 12; //设备类型 必填
+    int32 h = 13; //设备屏幕纵向分辨率 必填
+    int32 w = 14; //设备屏幕横向分辨率 必填
+    OsType os = 15; //操作系统 必填
+    string osv = 16; //操作系统版本 必填
+    string make = 17; //手机品牌，如iPhone 必填
+    string model = 18; //手机型号，如HUAWEI，iphone11,4 必填
+    Carrier carrier = 19; //运营商 必填
+    ConnType conn_type = 20; //联网环境 必填
+    string boot_second = 21; //最近一次开机时间，秒 选填
+    string update_second = 22; //最近更新操作系统的时间，秒 选填
+    Geo geo = 23; //设备所在经纬度 选填
+
+}
+
+enum ConnType {
+    UNKOWN = 0;
+    CONN_3G = 1;
+    CONN_4G = 2;
+    CONN_5G = 3;
+    WIFI = 4;
+    OTHER = 99;
+}
+
+enum DeviceType {
+    UNKOWN = 0;
+    PHONE = 1;
+    PAD = 2;
+}
+
+enum OsType {
+    UNKNOWN = 0;
+    IOS = 1;
+    ANDROID = 2;
+}
+
+enum Carrier {
+    UNKNOWN = 0;
+    MOBILE = 1; //移动
+    UNICOM = 2; //联通
+    TELECOM = 3; //电信
+}
+
+enum CreativeType {
+    IMAGE = 0; //单图
+    MUTI_IMAGE = 1; //多图
+    VIDEO = 2; //视频
+}
+
+enum InteractionType {
+    H5_LINK = 0;
+    DOWNLOAD = 1;
+    DEEPLINK = 2;
+    WECHAT_MINI_PROG = 3;
+}
+
+enum SettleType {
+    RS = 0; //平台分成模式
+    RTB = 1; //竞价模式
+    PD = 2; //线下deal模式
+}
+
+message Geo {
+    float lat = 1;
+    float lon = 2;
+    int32 source = 3; //获取来源   1: GPS 2:IP
+}
+
+message User {
+    int32 gender = 1; //性别  1：男   2：女
+    int32 age = 2; //年龄
+    repeated string keywords = 3; //用户关键信息
+    repeated string tag_id = 4; //媒体端，人群tag id
+}
+
+message BidResponse {
+    string request_id = 1; //本次请求id
+    int32 process_time_ms = 2; //系统返回话费时间。单位毫秒
+    int32 expiration_timestamp = 3; //广告过期时间戳，单位为秒
+
+    message Imp { //竞价信息
+                  int32 price = 1; //RTB模式下，必填
+                  string deal_id = 2; //pd模式下，必填
+                  int32 deal_price = 3; //pd模式下，必填
+    }
+    Imp imp = 4; //价格信息
+    Ad ad = 5; //素材信息
+    TermCode term_code = 6; //没有广告返回情况下，原因
+}
+
+message Ad {
+    string crid = 1; //素材id
+    CreativeType creative_type = 2; //素材类型
+    InteractionType interaction_type = 3; //交互类型
+    Creative creative = 4; //素材
+    App app = 5; //针对下载/唤起类广告
+
+}
+
+message Creative {
+    Text text = 1;
+    Image image = 2;
+    repeated Image images = 3;
+    Video video = 4;
+    string icon = 5;
+    string target_url = 6;
+    string download_url = 7;
+    string deeplink_url = 8; // 应用吊起的直达链接。如果该url非空，优先使用该直达链接
+    repeated string impression_trackers = 12; //曝光链接，当广告展示时，里面当链接均需要上报
+    repeated string click_trackers = 13; //点击链接，当广告被用户点击时，里面当链接均需要上报
+    repeated Tracker conversion_trackers = 14; //当下载，唤起，视频播放等交互时，按要求上报
+
+    message Text {
+        string title = 1;
+        string desc = 2;
+    }
+    message Image {
+        int32 h = 1;
+        int32 w = 2;
+        string url = 3;
+    }
+    message Video {
+        int32 w = 1; // 视频宽度
+        int32 h = 2; // 视频高度
+        string url = 3; // 视频地址
+        int32 duration = 4; // 视频时长.秒
+        string cover_url = 5; //封面图url
+    }
+
+    message Tracker {
+        int32 event_type = 1; //事件类型
+        repeated string tracker_urls = 2; //url集合
+    }
+}
+
+
+enum TermCode {
+    UNSUPPORT_CONTENT_TYPE = 0; //不支持的content-type
+    BODY_EMPTY = 1; //空body
+    BASE_PARAM_LACK = 2;    //上层参数缺失，如缺少app信息
+    INVALID_API_VERSION = 3; //不支持的api版本
+    BUNDLE_ID_LACK = 4; //bundle_id缺少
+    SITE_ID_LACK = 5; //广告位id缺少
+    UNSUPPORT_AD_TYPE = 6; //不支持的ad type
+    UNSUPPORT_SETTLE_TYPE = 7; //不支持的交易模式
+}
+
+
